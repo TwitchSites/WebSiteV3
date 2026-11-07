@@ -42,3 +42,18 @@ Scale: 100%
 Alignment: center
 Opacity: 100
 Nudge: 0px 0px
+
+## Reviews Hero
+Image: hero-reviews.jpg
+
+#Desktop
+Scale: 133%
+Alignment: center
+Opacity: 100
+Nudge: 0px 45px
+
+#Mobile
+Scale: 130%
+Alignment: center
+Opacity: 100
+Nudge: 0px 13px
