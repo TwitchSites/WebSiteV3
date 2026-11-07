@@ -625,6 +625,33 @@ CSS = """
   .product-price{ font-size:14px; color:var(--text); font-weight:700; }
   .keyword-product-buttons{ display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
 
+  .brand-grid2{ display:grid; grid-template-columns:repeat(4,1fr); gap:28px 22px; margin-top:24px; }
+  @media (max-width:1100px){ .brand-grid2{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:640px){ .brand-grid2{ grid-template-columns:repeat(2,1fr); gap:22px 14px; } }
+  .brand-tile2{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; text-decoration:none; color:inherit; padding:6px; }
+  .brand-tile2-logo{ display:flex; align-items:center; justify-content:center; width:100%; aspect-ratio:3/2; }
+  .brand-tile2-logo img{ max-width:100%; max-height:100%; object-fit:contain; background:none; transition:transform .2s ease; }
+  .brand-tile2:hover .brand-tile2-logo img{ transform:scale(1.05); }
+  .brand-tile2-name{ font-weight:700; letter-spacing:.02em; }
+  .brand-tile2:hover .brand-tile2-name{ color:var(--lime); }
+  .brand-tile2-desc{ font-size:14px; color:var(--text-dim); line-height:1.4; }
+  .brand-h1{ line-height:1; margin:6px 0 0; }
+  .page-banner .brand-title-logo{ position:static; display:block; inset:auto; width:auto; height:auto; max-height:84px; max-width:min(100%,380px); object-fit:contain; background:none; opacity:1; filter:none; transform:none; margin:4px 0 2px; }
+  .brand-logos{ display:flex; flex-wrap:wrap; gap:24px 36px; align-items:center; justify-content:center; margin:6px 0 26px; }
+  .brand-logos img{ max-height:120px; max-width:min(100%,320px); object-fit:contain; background:none; }
+  .brand-actions{ display:flex; flex-wrap:wrap; gap:12px; margin:26px 0 8px; }
+  .brand-block{ margin-top:44px; }
+  .brand-seen-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:16px; }
+  @media (max-width:900px){ .brand-seen-grid{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:640px){ .brand-seen-grid{ grid-template-columns:repeat(2,1fr); gap:10px; } }
+  .brand-seen-tile{ display:flex; flex-direction:column; gap:6px; text-decoration:none; color:inherit; }
+  .brand-seen-media{ position:relative; display:block; aspect-ratio:4/3; overflow:hidden; border:1px solid var(--line); background:#000; }
+  .brand-seen-media img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .brand-seen-tile:hover .brand-seen-media{ border-color:var(--lime); }
+  .brand-seen-cap{ font-size:13px; color:var(--text-dim); line-height:1.35; }
+  .brand-seen-cap strong{ display:block; color:var(--text); font-size:14px; }
+  .brand-seen-cap a{ color:var(--lime); }
+  .brand-seen-video .play-overlay{ opacity:1; }
   .brand-grid{ display:flex; flex-wrap:wrap; gap:24px; margin-top:20px; }
   .brand-tile{ position:relative; }
   .brand-logo-link{ display:flex; align-items:center; justify-content:center; width:120px; height:80px;
@@ -1567,7 +1594,7 @@ BRANDS_BODY = f"""<section class="page-banner" style="--ph:245px">
     <div class="section-head">
       <span class="kicker">Brands we stand by</span>
       <h2>Backed by experience</h2>
-      <p>Hover a logo to see which of their products show up in the builds. Click through to shop, or click a product to see it in the gallery.</p>
+      <p>Tap a brand to see what they make, where they show up in my builds, and where to shop them.</p>
     </div>
     {render_dynamic.brands_grid_html(CONTENT['brands'], CONTENT['products'])}
   </div>
@@ -1720,6 +1747,9 @@ def _write_search_files():
     bdir = os.path.join(BASE, "builds")
     if os.path.isdir(bdir):
         urls += [SITE_URL + "/builds/" + f for f in sorted(os.listdir(bdir)) if f.endswith(".html")]
+    brdir = os.path.join(BASE, "brand")
+    if os.path.isdir(brdir):
+        urls += [SITE_URL + "/brand/" + f for f in sorted(os.listdir(brdir)) if f.endswith(".html")]
     xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     xml += "".join(f"  <url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n"
     with open(os.path.join(BASE, "sitemap.xml"), "w", encoding="utf-8") as f:
@@ -1734,6 +1764,12 @@ render_dynamic.write_detail_pages(
     CONTENT
 )
 print(f"detail pages: {len(CONTENT['portfolio'])}")
+_nb = render_dynamic.write_brand_pages(
+    BASE,
+    lambda title, desc, active, body: page(title, desc, active, body),
+    CONTENT
+)
+print(f"brand pages: {_nb}")
 _write_search_files()
 
 print("DONE")

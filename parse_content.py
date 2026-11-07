@@ -59,7 +59,7 @@ def parse_txt(path):
 
 KNOWN_KEYS = {
     "Title", "Description", "Breakdown", "Type", "Location", "Keywords",
-    "YouTube", "Hover Start", "Highlight Length", "Captions", "Ask About", "Ask Prefill", "Brand", "Status", "Price", "Supplier Link", "Priority", "Series",
+    "YouTube", "Hover Start", "Highlight Length", "Captions", "Ask About", "Ask Prefill", "Brand", "Status", "Price", "Supplier Link", "Website", "Priority", "Series",
 }
 
 
@@ -314,8 +314,10 @@ def parse_brands():
             "title": fields.get("Title", stem),
             "description": fields.get("Description", ""),
             "keywords": [k["kw"] for k in parse_keywords_field(fields.get("Keywords", ""))],
-            "supplier_link": fields.get("Supplier Link", ""),
+            "breakdown": fields.get("Breakdown", ""),
+            "supplier_link": fields.get("Website") or fields.get("Supplier Link", ""),
             "logo": images[0] if images else None,
+            "logos": images,
             "priority": parse_priority(fields.get("Priority")),
             "series": (fields.get("Series") or "").strip(),
         })

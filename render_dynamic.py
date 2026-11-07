@@ -196,26 +196,11 @@ def brand_card(brand, all_products):
     if not brand.get("logo"):
         return ""  # no logo = skip entirely, per spec
     logo = brand_img_src(brand["logo"])
-    brand_products = []
-    for section_products in all_products.values():
-        for p in section_products:
-            if p.get("brand", "").lower() == brand["title"].lower():
-                brand_products.append(p)
-
-    submenu = ""
-    if brand_products:
-        items = "\n".join(
-            f'<a href="{_product_link(p)}">{p["title"]}</a>' for p in brand_products
-        )
-        submenu = f'<div class="brand-submenu">{items}</div>'
-
-    link = brand.get("supplier_link") or "#"
-    return f'''    <div class="brand-tile">
-      <a href="{link}" target="_blank" rel="noopener" class="brand-logo-link">
-        <img src="{logo}" alt="{brand['title']}">
-      </a>
-      {submenu}
-    </div>'''
+    desc = html.escape(brand.get("description") or "")
+    return f'''    <a class="brand-tile2" href="brand/{brand['slug']}.html">
+      <span class="brand-tile2-logo"><img src="{logo}" alt="{html.escape(brand['title'])}" loading="lazy"></span>
+      {f'<span class="brand-tile2-desc">{desc}</span>' if desc else ''}
+    </a>'''
 
 
 def _product_link(product):
@@ -228,7 +213,7 @@ def brands_grid_html(brands, products):
     cards = [c for c in cards if c]
     if not cards:
         return '<p style="color:var(--text-dim);">No brand logos uploaded yet.</p>'
-    return f'<div class="brand-grid">\n{"".join(cards)}\n  </div>'
+    return f'<div class="brand-grid2">\n{"".join(cards)}\n  </div>'
 
 
 # ---------------------------------------------------------------------------
@@ -551,6 +536,138 @@ def write_detail_pages(output_dir, page_fn, data):
         html = _fix_relative_paths(html)
         with open(os.path.join(builds_dir, f"{entry['slug']}.html"), "w", encoding="utf-8") as f:
             f.write(html)
+
+
+# ---------------------------------------------------------------------------
+# BRAND DETAIL PAGES  (brand/<slug>.html)
+# ---------------------------------------------------------------------------
+
+def _brand_products(brand, products):
+    out = []
+    for section_products in products.values():
+        for p in section_products:
+            if p.get("brand", "").lower() == brand["title"].lower():
+                out.append(p)
+    return out
+
+
+def _brand_gallery_matches(brand, portfolio):
+    """Gallery entries whose keywords include one of the brand's keywords or
+    the brand name itself. Videos first, then photos."""
+    wanted = {k.lower() for k in brand.get("keywords", [])}
+    wanted.add(brand["title"].lower())
+    wanted.add(brand["slug"])
+    hits = []
+    for e in portfolio:
+        kws = {k["kw"].lower() for k in e["keywords"]}
+        if kws & wanted:
+            hits.append(e)
+    videos = [e for e in hits if e["youtube"]]
+    photos = [e for e in hits if not e["youtube"]]
+    return videos, photos
+
+
+def brand_page_body(brand, data):
+    title = html.escape(brand["title"])
+    logos = brand.get("logos") or ([brand["logo"]] if brand.get("logo") else [])
+    # logo #1 replaces the brand name as the page title; any extra logos
+    # (name 2.png, name 3.png ...) are listed under it.
+    logo_html = "".join(
+        f'<img src="{brand_img_src(f)}" alt="{title} logo">' for f in logos[1:]
+    )
+    title_html = (f'<img class="brand-title-logo" src="{brand_img_src(logos[0])}" alt="{title}">'
+                  if logos else title)
+    products = _brand_products(brand, data["products"])
+    videos, photos = _brand_gallery_matches(brand, data["portfolio"])
+
+    # buttons: shop + website
+    btns = []
+    if products:
+        btns.append(f'<a class="btn primary" href="#shop-brand">Shop {title}</a>')
+    else:
+        msg = f"Hi, I'm interested in {brand['title']} parts. Can you help?"
+        href = "../your-build.html?msg=" + urllib.parse.quote(msg) + "#other-enquiries"
+        btns.append(f'<a class="btn primary" href="{href}">Ask about {title}</a>')
+    if brand.get("supplier_link"):
+        btns.append(f'<a class="btn" href="{html.escape(brand["supplier_link"])}" target="_blank" rel="noopener">Visit {title} website &#8599;</a>')
+
+    breakdown = ""
+    text = brand.get("breakdown") or brand.get("description") or ""
+    if text:
+        breakdown = f'<div class="detail-breakdown">{breakdown_html(text, False)}</div>'
+
+    shop = ""
+    if products:
+        chips = "".join(
+            f'<a class="btn small" href="{_product_link(p)}">{html.escape(p["title"])}</a>' for p in products
+        )
+        shop = f'''<div id="shop-brand" class="brand-block">
+      <div class="section-head"><span class="kicker">In the shop</span><h3>Shop {title}</h3></div>
+      <div class="keyword-product-buttons">{chips}</div>
+    </div>'''
+
+    # gallery / video strip
+    tiles = []
+    for e in videos[:3]:
+        thumb = portfolio_img_src(e["images"][0]) if e["images"] else ""
+        yt = e["youtube"]
+        tiles.append(f'''<div class="brand-seen-tile brand-seen-video">
+        <a href="{html.escape(yt)}" target="_blank" rel="noopener" class="brand-seen-media"><img src="{thumb}" alt="{html.escape(e['title'])}" loading="lazy" onerror="this.onerror=null;this.src=this.src.replace('maxresdefault','hqdefault')"><span class="play-overlay" aria-hidden="true">{PLAY_SVG_INLINE}</span></a>
+        <span class="brand-seen-cap"><strong>{html.escape(e['title'])}</strong>
+          <a href="../builds/{e['slug']}.html">Gallery page</a> &middot; <a href="{html.escape(yt)}" target="_blank" rel="noopener">YouTube &#8599;</a></span>
+      </div>''')
+    for e in photos[:6]:
+        if not e["images"]:
+            continue
+        thumb = portfolio_img_src(e["images"][0])
+        tiles.append(f'''<a class="brand-seen-tile" href="../builds/{e['slug']}.html">
+        <span class="brand-seen-media"><img src="{thumb}" alt="{html.escape(e['title'])}" loading="lazy"></span>
+        <span class="brand-seen-cap"><strong>{html.escape(e['title'])}</strong></span>
+      </a>''')
+    seen = ""
+    if tiles:
+        seen = f'''<div class="brand-block">
+      <div class="section-head"><span class="kicker">From the gallery</span><h3>{title} in action</h3></div>
+      <div class="brand-seen-grid">{"".join(tiles)}</div>
+    </div>'''
+
+    return f'''<section class="page-banner detail-banner">
+  <div class="page-banner-content">
+    <span class="kicker">Brand</span>
+    <h1 class="brand-h1">{title_html}</h1>
+  </div>
+</section>
+<section class="detail-section">
+  <div class="wrap">
+    {f'<div class="brand-logos">{logo_html}</div>' if logo_html else ''}
+    {breakdown}
+    <div class="brand-actions">{"".join(btns)}</div>
+    {shop}
+    {seen}
+    <p style="margin-top:24px;"><a href="../brands.html" class="btn">&larr; All brands</a></p>
+  </div>
+</section>'''
+
+
+def write_brand_pages(output_dir, page_fn, data):
+    """Writes brand/<slug>.html for every brand that has a logo."""
+    bdir = os.path.join(output_dir, "brand")
+    os.makedirs(bdir, exist_ok=True)
+    for old in os.listdir(bdir):
+        if old.endswith(".html"):
+            os.remove(os.path.join(bdir, old))
+    n = 0
+    for brand in data["brands"]:
+        if not brand.get("logo"):
+            continue
+        body = brand_page_body(brand, data)
+        desc = brand.get("description") or f"{brand['title']} — brand we endorse."
+        page_html = page_fn(f"{brand['title']} — Bitchin' Blasters", html.escape(desc), "brands", body)
+        page_html = _fix_relative_paths(page_html)
+        with open(os.path.join(bdir, f"{brand['slug']}.html"), "w", encoding="utf-8") as f:
+            f.write(page_html)
+        n += 1
+    return n
 
 
 GALLERY_FILTER_SCRIPT = """
