@@ -15,14 +15,27 @@ convention as portfolio works here too (`acme-airsoft 2.png`).
 
 ```
 Title: Acme Airsoft
-Description: One-liner shown on the Brands page
+Description: One-liner shown under the logo on the Brands page
+Breakdown: The full write-up shown on the brand's own page. Blank line = new paragraph.
 Keywords: acme
-Supplier Link: https://acmeairsoft.example.com
+Website: https://acmeairsoft.example.com
 ```
 
-`Keywords` here is just for reference/consistency — the actual product ↔
-brand link is made by each product's own `Brand:` field (see
-`/products/3d-printed/README.md`), not by matching this brand's keywords.
+What it makes:
+- **Brands page:** a backgroundless logo tile with the Description under it
+  (2 across on a phone, 3-4 across on a PC). Tapping a tile opens the brand's page.
+- **Brand page:** brand name at the top, the logo (plus any extra logos named
+  `acme-airsoft 2.png`, `acme-airsoft 3.png`), the full Breakdown, a **Shop** button,
+  a **Visit website** button, then a "from the gallery" strip.
+- **Shop button:** shows when any product has `Brand: Acme Airsoft` (it jumps to a
+  list of those products). With no products yet it becomes "Ask about Acme Airsoft".
+- **Gallery strip:** every gallery post/video whose own `Keywords:` includes one of this
+  brand's Keywords (or the brand name) is pulled in. Videos link to YouTube and to
+  their gallery page; photos link to the gallery post they came from.
+- `Website:` is the brand's own site (`Supplier Link:` still works too).
+
+The product ↔ brand shop link is made by each product's own `Brand:` field (see
+`/products/3d-printed/README.md`); the gallery link is made by matching Keywords.
 
 ## Important — logo is optional per product-linkage
 
