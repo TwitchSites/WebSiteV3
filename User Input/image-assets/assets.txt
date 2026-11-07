@@ -27,3 +27,18 @@ Scale: 103%
 Alignment: center
 Opacity: 80
 Nudge: 0px 0px
+
+## Builds Hero
+Image: hero-builds.jpg
+
+#Desktop
+Scale: 117%
+Alignment: center
+Opacity: 100
+Nudge: -40px 5px
+
+#Mobile
+Scale: 100%
+Alignment: center
+Opacity: 100
+Nudge: 0px 0px
