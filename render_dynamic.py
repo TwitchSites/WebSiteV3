@@ -170,7 +170,7 @@ def product_card(product, portfolio, show_status=False, show_price=False):
         first_kw = kw_list.split(",")[0]
         examples_btn = f'<a class="btn small" href="build-gallery.html?keyword={first_kw}">See Examples</a>'
 
-    return f'''    <div class="card product-card" data-keywords="{kw_list}">
+    return f'''    <div class="card product-card" data-keywords="{kw_list}" data-brand="{html.escape((product.get('brand') or '').lower())}">
       <img src="{thumb}" alt="{product['title']}">
       <div class="card-body">
         <h3>{product['title']}</h3>
@@ -580,14 +580,36 @@ def brand_page_body(brand, data):
     products = _brand_products(brand, data["products"])
     videos, photos = _brand_gallery_matches(brand, data["portfolio"])
 
-    # buttons: shop + website
+    # ---- buttons at the bottom: each opens the site section already filtered ----
+    import urllib.parse as _u
+    kws = [k for k in (brand.get("keywords") or [])] + [brand["title"]]
+
+    def best_kw(entries):
+        for k in kws:
+            kl = k.lower()
+            if any(kl in {x["kw"].lower() for x in e["keywords"]} for e in entries):
+                return k
+        return None
+
     btns = []
-    if products:
-        btns.append(f'<a class="btn primary" href="#shop-brand">Shop {title}</a>')
-    else:
+    store_prods = [p for p in products if p["section"] in ("spare-deals", "used-blasters")]
+    print_prods = [p for p in products if p["section"] == "3d-printed"]
+    q = _u.quote(brand["title"].lower())
+    if store_prods:
+        btns.append(f'<a class="btn primary" href="../store.html?brand={q}">Shop {title}</a>')
+    if print_prods:
+        label = f"Shop {title} (3D printed)" if store_prods else f"Shop {title}"
+        btns.append(f'<a class="btn{"" if store_prods else " primary"}" href="../3d-printing.html?brand={q}">{label}</a>')
+    if not products:
         msg = f"Hi, I'm interested in {brand['title']} parts. Can you help?"
-        href = "../your-build.html?msg=" + urllib.parse.quote(msg) + "#other-enquiries"
+        href = "../your-build.html?msg=" + _u.quote(msg) + "#other-enquiries"
         btns.append(f'<a class="btn primary" href="{href}">Ask about {title}</a>')
+    vk = best_kw(videos)
+    if vk:
+        btns.append(f'<a class="btn" href="../build-gallery.html?keyword={_u.quote(vk.lower())}&kind=video">See {title} in action</a>')
+    pk = best_kw(photos)
+    if pk:
+        btns.append(f'<a class="btn" href="../build-gallery.html?keyword={_u.quote(pk.lower())}&kind=photo">See {title} in builds</a>')
     if brand.get("supplier_link"):
         btns.append(f'<a class="btn" href="{html.escape(brand["supplier_link"])}" target="_blank" rel="noopener">Visit {title} website &#8599;</a>')
 
@@ -596,44 +618,8 @@ def brand_page_body(brand, data):
     if text:
         breakdown = f'<div class="detail-breakdown">{breakdown_html(text, False)}</div>'
 
-    shop = ""
-    if products:
-        chips = "".join(
-            f'<a class="btn small" href="{_product_link(p)}">{html.escape(p["title"])}</a>' for p in products
-        )
-        shop = f'''<div id="shop-brand" class="brand-block">
-      <div class="section-head"><span class="kicker">In the shop</span><h3>Shop {title}</h3></div>
-      <div class="keyword-product-buttons">{chips}</div>
-    </div>'''
-
-    # gallery / video strip
-    tiles = []
-    for e in videos[:3]:
-        thumb = portfolio_img_src(e["images"][0]) if e["images"] else ""
-        yt = e["youtube"]
-        tiles.append(f'''<div class="brand-seen-tile brand-seen-video">
-        <a href="{html.escape(yt)}" target="_blank" rel="noopener" class="brand-seen-media"><img src="{thumb}" alt="{html.escape(e['title'])}" loading="lazy" onerror="this.onerror=null;this.src=this.src.replace('maxresdefault','hqdefault')"><span class="play-overlay" aria-hidden="true">{PLAY_SVG_INLINE}</span></a>
-        <span class="brand-seen-cap"><strong>{html.escape(e['title'])}</strong>
-          <a href="../builds/{e['slug']}.html">Gallery page</a> &middot; <a href="{html.escape(yt)}" target="_blank" rel="noopener">YouTube &#8599;</a></span>
-      </div>''')
-    for e in photos[:6]:
-        if not e["images"]:
-            continue
-        thumb = portfolio_img_src(e["images"][0])
-        tiles.append(f'''<a class="brand-seen-tile" href="../builds/{e['slug']}.html">
-        <span class="brand-seen-media"><img src="{thumb}" alt="{html.escape(e['title'])}" loading="lazy"></span>
-        <span class="brand-seen-cap"><strong>{html.escape(e['title'])}</strong></span>
-      </a>''')
-    seen = ""
-    if tiles:
-        seen = f'''<div class="brand-block">
-      <div class="section-head"><span class="kicker">From the gallery</span><h3>{title} in action</h3></div>
-      <div class="brand-seen-grid">{"".join(tiles)}</div>
-    </div>'''
-
     return f'''<section class="page-banner detail-banner">
   <div class="page-banner-content">
-    <span class="kicker">Brand</span>
     <h1 class="brand-h1">{title_html}</h1>
   </div>
 </section>
@@ -642,8 +628,6 @@ def brand_page_body(brand, data):
     {f'<div class="brand-logos">{logo_html}</div>' if logo_html else ''}
     {breakdown}
     <div class="brand-actions">{"".join(btns)}</div>
-    {shop}
-    {seen}
     <p style="margin-top:24px;"><a href="../brands.html" class="btn">&larr; All brands</a></p>
   </div>
 </section>'''
@@ -669,6 +653,27 @@ def write_brand_pages(output_dir, page_fn, data):
         n += 1
     return n
 
+
+BRAND_FILTER_SCRIPT = """
+  // ---- Product brand filter (?brand=xxx) from a brand page ----
+  (function() {
+    const b = (new URLSearchParams(window.location.search).get('brand') || '').toLowerCase();
+    if (!b) return;
+    const cards = Array.prototype.slice.call(document.querySelectorAll('.product-card'));
+    if (!cards.length) return;
+    let shown = 0;
+    cards.forEach(function(c) {
+      if ((c.dataset.brand || '') !== b) c.style.display = 'none'; else shown++;
+    });
+    const first = cards[0];
+    const host = first.closest('section') || first.parentElement;
+    const bar = document.createElement('div');
+    bar.style.cssText = 'margin:0 0 18px;padding:12px 14px;border:1px solid var(--lime);display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap';
+    bar.innerHTML = '<span>Showing <strong></strong> only' + (shown ? '' : ' &mdash; nothing listed right now') + '</span><a class="btn small" href="' + location.pathname + '">Show all</a>';
+    bar.querySelector('strong').textContent = b.replace(/\\b\\w/g, function(m){ return m.toUpperCase(); });
+    host.parentElement.insertBefore(bar, host);
+  })();
+"""
 
 GALLERY_FILTER_SCRIPT = """
   // ---- Gallery keyword filter (?keyword=xxx) ----
