@@ -1568,6 +1568,8 @@ img.hero-photo-brands-hero{ object-fit:cover; object-position:center center; tra
     // links from product pages (?keyword=xxx) open with that word searched
     const kw = (new URLSearchParams(window.location.search).get('keyword') || '').toLowerCase();
     if (kw) { qBox.value = kw; state.q = kw; header.classList.add('searching'); }
+    const kd = (new URLSearchParams(window.location.search).get('kind') || '').toLowerCase();
+    if (kd === 'photo' || kd === 'video') state.kind = kd;
 
     // menu links (build-gallery.html#builds etc.) behave exactly like pressing that category button
     const ids = sections.map(function(s){ return s.dataset.section; });

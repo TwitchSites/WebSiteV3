@@ -1264,6 +1264,25 @@ img.hero-photo-brands-hero{ object-fit:cover; object-position:center center; tra
   });
 
 
+  // ---- Product brand filter (?brand=xxx) from a brand page ----
+  (function() {
+    const b = (new URLSearchParams(window.location.search).get('brand') || '').toLowerCase();
+    if (!b) return;
+    const cards = Array.prototype.slice.call(document.querySelectorAll('.product-card'));
+    if (!cards.length) return;
+    let shown = 0;
+    cards.forEach(function(c) {
+      if ((c.dataset.brand || '') !== b) c.style.display = 'none'; else shown++;
+    });
+    const first = cards[0];
+    const host = first.closest('section') || first.parentElement;
+    const bar = document.createElement('div');
+    bar.style.cssText = 'margin:0 0 18px;padding:12px 14px;border:1px solid var(--lime);display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap';
+    bar.innerHTML = '<span>Showing <strong></strong> only' + (shown ? '' : ' &mdash; nothing listed right now') + '</span><a class="btn small" href="' + location.pathname + '">Show all</a>';
+    bar.querySelector('strong').textContent = b.replace(/\b\w/g, function(m){ return m.toUpperCase(); });
+    host.parentElement.insertBefore(bar, host);
+  })();
+
 </script>
 <script>
 (function(){
