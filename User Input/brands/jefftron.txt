@@ -1,10 +1,15 @@
 Title: Jefftron
 Description: MOSFET'S, FCU'S, TRIGGER's & more
 Breakdown: Jefftron is a Czech company that's been designing and building its own electronics since 2011. It was started by active airsoft players, and you can tell. Everything is engineered and made in-house in the Czech Republic, from the Leviathan and Scylla electronic trigger units (ETUs) to programmable MOSFETs and CNC speed triggers.
+
 I first bought a Scylla from a retailer back when I was just a player, not a tech. It failed after 3,500 shots, and it was Jefftron's response to my email that really got my attention. They asked me to do one quick check, whether it was showing over Bluetooth under a different name or not at all, then just needed my postal details to send a direct replacement, which arrived in less than a week. I've never had a single complaint since.
+
 That's why I reached out to them once I started doing consistent tech work. I don't just believe in their products, I believe in the high standards they hold themselves to. It shows in their outstanding after-sales support, even when they didn't sell the product direct, and in their ongoing development of both new and current products.
+
 They have been interested in hearing any and all feedback and ideas, no matter how dumb they may have been hahahaa, and have supported us to try changes that may make products better suited to gel blasters in instances where the design for airsoft may leave a shortfall.
+
 That's why Jefftron is a brand I'm proud to stock and stand behind, and I'm looking forward to seeing what they bring out next.
+
 Keywords: Jefftron
 Website: Jefftron.net
 Priority: 1
