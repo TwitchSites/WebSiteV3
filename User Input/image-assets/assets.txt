@@ -68,7 +68,7 @@ Opacity: 100
 Nudge: 0px 170px
 
 #Mobile
-Scale: 100%
+Scale: 116%
 Alignment: center
 Opacity: 100
-Nudge: 0px 0px
+Nudge: -2px 10px
