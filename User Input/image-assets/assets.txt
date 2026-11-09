@@ -57,3 +57,18 @@ Scale: 130%
 Alignment: center
 Opacity: 100
 Nudge: 0px 13px
+
+## 3D Printing Hero
+Image: hero-3d-printing.jpg
+
+#Desktop
+Scale: 100%
+Alignment: center
+Opacity: 100
+Nudge: 0px 170px
+
+#Mobile
+Scale: 100%
+Alignment: center
+Opacity: 100
+Nudge: 0px 0px
