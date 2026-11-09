@@ -65,10 +65,11 @@ Image: hero-3d-printing.jpg
 Scale: 100%
 Alignment: center
 Opacity: 100
-Nudge: 0px 170px
+Nudge: 0px 60px
 
 #Mobile
-Scale: 116%
+Scale: 115%
 Alignment: center
 Opacity: 100
-Nudge: -2px 10px
+Nudge: 0px 20px
+
